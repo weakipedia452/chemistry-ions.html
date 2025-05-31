@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>化学离子背诵工具</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #2c3e50);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 30px 0;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            color: #ffd700;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            max-width: 700px;
+            margin: 0 auto;
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 12px 25px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 2px solid #4a9fe3;
+            color: white;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+        
+        .filter-btn:hover, .filter-btn.active {
+            background: #4a9fe3;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .search-container {
+            width: 100%;
+            max-width: 500px;
+            margin: 20px auto 30px;
+            position: relative;
+        }
+        
+        #search {
+            width: 100%;
+            padding: 15px 20px;
+            padding-left: 50px;
+            border-radius: 50px;
+            border: none;
+            font-size: 1.1rem;
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #2c3e50;
+            font-size: 1.2rem;
+        }
+        
+        .instructions {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            max-width: 800px;
+            margin: 0 auto 30px;
+            font-size: 1.1rem;
+        }
+        
+        .instructions i {
+            color: #ffd700;
+            margin-right: 8px;
+        }
+        
+        .card-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+        
+        .section-title {
+            grid-column: 1 / -1;
+            font-size: 2rem;
+            text-align: center;
+            margin: 30px 0 20px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            color: #ffd700;
+        }
+        
+        .card {
+            height: 200px;
+            perspective: 1000px;
+            cursor: pointer;
+        }
+        
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .card.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+        
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 15px;
+            padding: 20px;
+        }
+        
+        .card-front {
+            background: linear-gradient(135deg, #3498db, #1a5276);
+        }
+        
+        .card-back {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            transform: rotateY(180deg);
+        }
+        
+        .card.cation .card-front {
+            background: linear-gradient(135deg, #3498db, #1a5276);
+        }
+        
+        .card.anion .card-front {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+        }
+        
+        .card.polyatomic .card-front {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+        }
+        
+        .card-name {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .card-type {
+            font-size: 1.1rem;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+        }
+        
+        .formula {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 15px 0;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .charge {
+            font-size: 1.4rem;
+            font-style: italic;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+        }
+        
+        .hint {
+            position: absolute;
+            bottom: 15px;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.8);
+            font-style: italic;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 20px;
+            color: #bbb;
+            font-size: 1rem;
+        }
+        
+        @media (max-width: 768px) {
+            .card-container {
+                grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .controls {
+                gap: 10px;
+            }
+            
+            .filter-btn {
+                padding: 10px 15px;
+                font-size: 1rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .card-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-flask"></i> 化学离子背诵工具</h1>
+            <p class="subtitle">本工具帮助您记忆常见阳离子、阴离子及多原子离子的名称和化学式。点击卡片查看化学式，再次点击返回名称。</p>
+        </header>
+        
+        <div class="controls">
+            <button class="filter-btn active" data-filter="all">全部离子</button>
+            <button class="filter-btn" data-filter="cation">阳离子</button>
+            <button class="filter-btn" data-filter="anion">阴离子</button>
+            <button class="filter-btn" data-filter="polyatomic">多原子离子</button>
+        </div>
+        
+        <div class="search-container">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" id="search" placeholder="搜索离子名称或化学式...">
+        </div>
+        
+        <div class="instructions">
+            <p><i class="fas fa-lightbulb"></i> 提示：阳离子带正电荷(+)，阴离子带负电荷(-)。多原子离子是由多个原子组成的带电原子团。</p>
+        </div>
+        
+        <div class="card-container">
+            <h2 class="section-title">阳离子 (Cations)</h2>
+            <!-- Cations will be inserted here by JavaScript -->
+            
+            <h2 class="section-title">阴离子 (Anions)</h2>
+            <!-- Anions will be inserted here by JavaScript -->
+        </div>
+        
+        <footer>
+            <p>化学离子学习工具 | 包含常见阳离子、阴离子和多原子离子 | 使用闪卡技术帮助记忆</p>
+        </footer>
+    </div>
+
+    <script>
+        // 离子数据
+        const ions = [
+            // 阳离子
+            { name: "铝离子", formula: "Al", charge: "3+", type: "cation", altName: "Aluminum" },
+            { name: "铵根离子", formula: "NH₄", charge: "1+", type: "cation", altName: "Ammonium" },
+            { name: "钡离子", formula: "Ba", charge: "2+", type: "cation", altName: "Barium" },
+            { name: "钙离子", formula: "Ca", charge: "2+", type: "cation", altName: "Calcium" },
+            { name: "铬(II)离子", formula: "Cr", charge: "2+", type: "cation", altName: "Chromous" },
+            { name: "铬(III)离子", formula: "Cr", charge: "3+", type: "cation", altName: "Chromic" },
+            { name: "铜(I)离子", formula: "Cu", charge: "1+", type: "cation", altName: "Cuprous" },
+            { name: "铜(II)离子", formula: "Cu", charge: "2+", type: "cation", altName: "Cupric" },
+            { name: "氢离子", formula: "H", charge: "1+", type: "cation", altName: "Hydrogen" },
+            { name: "水合氢离子", formula: "H₃O", charge: "1+", type: "cation", altName: "Hydronium" },
+            { name: "铁(II)离子", formula: "Fe", charge: "2+", type: "cation", altName: "Ferrous" },
+            { name: "铁(III)离子", formula: "Fe", charge: "3+", type: "cation", altName: "Ferric" },
+            { name: "铅(II)离子", formula: "Pb", charge: "2+", type: "cation", altName: "Plumbous" },
+            { name: "铅(IV)离子", formula: "Pb", charge: "4+", type: "cation", altName: "Plumbic" },
+            { name: "锂离子", formula: "Li", charge: "1+", type: "cation", altName: "Lithium" },
+            { name: "镁离子", formula: "Mg", charge: "2+", type: "cation", altName: "Magnesium" },
+            { name: "锰(II)离子", formula: "Mn", charge: "2+", type: "cation", altName: "Manganous" },
+            { name: "汞(I)离子", formula: "Hg₂", charge: "2+", type: "cation", altName: "Mercurous" },
+            { name: "汞(II)离子", formula: "Hg", charge: "2+", type: "cation", altName: "Mercuric" },
+            { name: "钾离子", formula: "K", charge: "1+", type: "cation", altName: "Potassium" },
+            { name: "银离子", formula: "Ag", charge: "1+", type: "cation", altName: "Silver" },
+            { name: "钠离子", formula: "Na", charge: "1+", type: "cation", altName: "Sodium" },
+            { name: "锡(II)离子", formula: "Sn", charge: "2+", type: "cation", altName: "Stannous" },
+            { name: "锡(IV)离子", formula: "Sn", charge: "4+", type: "cation", altName: "Stannic" },
+            { name: "锌离子", formula: "Zn", charge: "2+", type: "cation", altName: "Zinc" },
+            
+            // 阴离子
+            { name: "乙酸根", formula: "CH₃COO", charge: "1-", type: "anion", altName: "Acetate" },
+            { name: "溴离子", formula: "Br", charge: "1-", type: "anion", altName: "Bromide" },
+            { name: "碳酸根", formula: "CO₃", charge: "2-", type: "anion", altName: "Carbonate" },
+            { name: "碳酸氢根", formula: "HCO₃", charge: "1-", type: "anion", altName: "Bicarbonate" },
+            { name: "氯酸根", formula: "ClO₃", charge: "1-", type: "anion", altName: "Chlorate" },
+            { name: "氯离子", formula: "Cl", charge: "1-", type: "anion", altName: "Chloride" },
+            { name: "亚氯酸根", formula: "ClO₂", charge: "1-", type: "anion", altName: "Chlorite" },
+            { name: "铬酸根", formula: "CrO₄", charge: "2-", type: "anion", altName: "Chromate" },
+            { name: "重铬酸根", formula: "Cr₂O₇", charge: "2-", type: "anion", altName: "Dichromate" },
+            { name: "氟离子", formula: "F", charge: "1-", type: "anion", altName: "Fluoride" },
+            { name: "氢氧根", formula: "OH", charge: "1-", type: "anion", altName: "Hydroxide" },
+            { name: "次氯酸根", formula: "ClO", charge: "1-", type: "anion", altName: "Hypochlorite" },
+            { name: "碘离子", formula: "I", charge: "1-", type: "anion", altName: "Iodide" },
+            { name: "硝酸根", formula: "NO₃", charge: "1-", type: "anion", altName: "Nitrate" },
+            { name: "亚硝酸根", formula: "NO₂", charge: "1-", type: "anion", altName: "Nitrite" },
+            { name: "草酸根", formula: "C₂O₄", charge: "2-", type: "anion", altName: "Oxalate" },
+            { name: "氧离子", formula: "O", charge: "2-", type: "anion", altName: "Oxide" },
+            { name: "高氯酸根", formula: "ClO₄", charge: "1-", type: "anion", altName: "Perchlorate" },
+            { name: "高锰酸根", formula: "MnO₄", charge: "1-", type: "anion", altName: "Permanganate" },
+            { name: "磷酸根", formula: "PO₄", charge: "3-", type: "anion", altName: "Phosphate" },
+            { name: "硫酸根", formula: "SO₄", charge: "2-", type: "anion", altName: "Sulfate" },
+            { name: "硫酸氢根", formula: "HSO₄", charge: "1-", type: "anion", altName: "Bisulfate" },
+            { name: "硫离子", formula: "S", charge: "2-", type: "anion", altName: "Sulfide" },
+            { name: "硫氢根", formula: "HS", charge: "1-", type: "anion", altName: "Bisulfide" },
+            { name: "亚硫酸根", formula: "SO₃", charge: "2-", type: "anion", altName: "Sulfite" },
+            { name: "亚硫酸氢根", formula: "HSO₃", charge: "1-", type: "anion", altName: "Bisulfite" },
+            { name: "溴酸根", formula: "BrO₃", charge: "1-", type: "anion", altName: "Bromate" },
+            { name: "碘酸根", formula: "IO₃", charge: "1-", type: "anion", altName: "Iodate" },
+            { name: "硒酸根", formula: "SeO₄", charge: "2-", type: "anion", altName: "Selenate" }
+        ];
+
+        // 页面加载完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            const cardContainer = document.querySelector('.card-container');
+            
+            // 渲染离子卡片
+            function renderIons(filter = 'all', searchTerm = '') {
+                cardContainer.innerHTML = '';
+                
+                // 过滤离子
+                let filteredIons = ions;
+                
+                if (filter !== 'all') {
+                    filteredIons = ions.filter(ion => ion.type === filter);
+                }
+                
+                if (searchTerm) {
+                    const term = searchTerm.toLowerCase();
+                    filteredIons = filteredIons.filter(ion => 
+                        ion.name.toLowerCase().includes(term) || 
+                        ion.altName.toLowerCase().includes(term) ||
+                        ion.formula.toLowerCase().includes(term)
+                    );
+                }
+                
+                // 分组阳离子和阴离子
+                const cations = filteredIons.filter(ion => ion.type === 'cation');
+                const anions = filteredIons.filter(ion => ion.type === 'anion');
+                const polyatomic = filteredIons.filter(ion => ion.formula.length > 2);
+                
+                // 渲染阳离子
+                if (cations.length > 0) {
+                    cardContainer.innerHTML += `<h2 class="section-title">阳离子 (Cations)</h2>`;
+                    cations.forEach(ion => {
+                        const card = createIonCard(ion);
+                        cardContainer.appendChild(card);
+                    });
+                }
+                
+                // 渲染阴离子
+                if (anions.length > 0) {
+                    cardContainer.innerHTML += `<h2 class="section-title">阴离子 (Anions)</h2>`;
+                    anions.forEach(ion => {
+                        const card = createIonCard(ion);
+                        cardContainer.appendChild(card);
+                    });
+                }
+            }
+            
+            // 创建离子卡片
+            function createIonCard(ion) {
+                const card = document.createElement('div');
+                card.className = `card ${ion.type} ${ion.formula.length > 2 ? 'polyatomic' : ''}`;
+                
+                card.innerHTML = `
+                    <div class="card-inner">
+                        <div class="card-front">
+                            <div class="card-name">${ion.name}</div>
+                            <div class="card-type">${ion.altName}</div>
+                            <div class="hint">点击查看化学式</div>
+                        </div>
+                        <div class="card-back">
+                            <div class="formula">${ion.formula}<sup>${ion.charge}</sup></div>
+                            <div class="charge">电荷: ${ion.charge}</div>
+                            <div class="hint">点击返回名称</div>
+                        </div>
+                    </div>
+                `;
+                
+                // 添加点击事件
+                card.addEventListener('click', function() {
+                    this.classList.toggle('flipped');
+                });
+                
+                return card;
+            }
+            
+            // 初始渲染
+            renderIons();
+            
+            // 过滤按钮事件
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    renderIons(this.dataset.filter, document.getElementById('search').value);
+                });
+            });
+            
+            // 搜索功能
+            const searchInput = document.getElementById('search');
+            searchInput.addEventListener('input', function() {
+                const activeFilter = document.querySelector('.filter-btn.active').dataset.filter;
+                renderIons(activeFilter, this.value);
+            });
+        });
+    </script>
+</body>
+</html>
